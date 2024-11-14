@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: rabbitmq
+  name: rabbitmq-app
 spec:
-  serviceName: rabbitmq
-  replicas: 4
+  serviceName: rabbitmq-srv
+  replicas: 3
   selector:
     matchLabels:
-      app: rabbitmq
+      app: rabbitmq-app
   template:
     metadata:
       labels:
-        app: rabbitmq
+        app: rabbitmq-app
     spec:
       serviceAccountName: rabbitmq
       initContainers:
@@ -27,7 +27,7 @@ spec:
         - name: plugins-file
           mountPath: /etc/rabbitmq/
       containers:
-      - name: rabbitmq
+      - name: rabbitmq-app
         image: rabbitmq:3.8-management
         ports:
         - containerPort: 4369
@@ -35,6 +35,8 @@ spec:
         - containerPort: 5672
           name: amqp
         env:
+        - name: TZ
+          value: Asia/Tehran
         - name: RABBIT_POD_NAME
           valueFrom:
             fieldRef:
@@ -45,7 +47,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: RABBITMQ_NODENAME
-          value: rabbit@$(RABBIT_POD_NAME).rabbitmq.$(RABBIT_POD_NAMESPACE).svc.cluster.local
+          value: rabbit@$(RABBIT_POD_NAME).rabbitmq-srv.$(RABBIT_POD_NAMESPACE).svc.cluster.local
         - name: RABBITMQ_USE_LONGNAME 
           value: "true"
         - name: RABBITMQ_CONFIG_FILE
@@ -56,7 +58,7 @@ spec:
               name: rabbit-secret
               key: RABBITMQ_ERLANG_COOKIE
         - name: K8S_HOSTNAME_SUFFIX
-          value: .rabbitmq.$(RABBIT_POD_NAMESPACE).svc.cluster.local
+          value: .rabbitmq-srv.$(RABBIT_POD_NAMESPACE).svc.cluster.local
         volumeMounts:
         - name: data
           mountPath: /var/lib/rabbitmq
@@ -79,23 +81,7 @@ spec:
       name: data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "standard"
+      storageClassName: "local-path"
       resources:
         requests:
-          storage: 50Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rabbitmq
-spec:
-  clusterIP: None
-  ports:
-  - port: 4369
-    targetPort: 4369
-    name: discovery
-  - port: 5672
-    targetPort: 5672
-    name: amqp
-  selector:
-    app: rabbitmq
+          storage: 10Gi
