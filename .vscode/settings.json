@@ -1,0 +1,13 @@
+{
+    "cSpell.words": [
+        "daemonset",
+        "FLUENTD",
+        "insync",
+        "jbod",
+        "rabbitmq",
+        "statefulset",
+        "strimzi",
+        "varlibdockercontainers",
+        "varlog"
+    ]
+}
