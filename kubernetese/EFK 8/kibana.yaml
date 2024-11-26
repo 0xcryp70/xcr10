@@ -7,7 +7,7 @@ metadata:
     app: kibana
 spec:
   ports:
-  - port: 5601
+    - port: 5601
   selector:
     app: kibana
 ---
@@ -29,15 +29,15 @@ spec:
         app: kibana
     spec:
       containers:
-      - name: kibana
-        image: docker.elastic.co/kibana/kibana:7.2.0
-        resources:
-          limits:
-            cpu: 1000m
-          requests:
-            cpu: 100m
-        env:
-          - name: ELASTICSEARCH_URL
-            value: http://elasticsearch:9200
-        ports:
-        - containerPort: 5601
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.15.4
+          resources:
+            limits:
+              cpu: 1000m
+            requests:
+              cpu: 100m
+          env:
+            - name: ELASTICSEARCH_URL
+              value: http://elasticsearch:9200
+          ports:
+            - containerPort: 5601

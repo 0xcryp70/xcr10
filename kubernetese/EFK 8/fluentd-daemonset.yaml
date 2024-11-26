@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentd
+  namespace: kube-logging
+  labels:
+    app: fluentd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluentd
+  labels:
+    app: fluentd
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fluentd
+roleRef:
+  kind: ClusterRole
+  name: fluentd
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: fluentd
+    namespace: kube-logging
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+  namespace: kube-logging
+  labels:
+    app: fluentd
+spec:
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      serviceAccountName: fluentd
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+      initContainers:
+        - name: copy-config
+          image: fluent/fluentd-kubernetes-daemonset:v1.4.2-debian-elasticsearch-1.1
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cp -a /fluentd/etc/* /fluentd/etc-config/
+              cp /fluentd-config/* /fluentd/etc-config/
+          volumeMounts:
+            - name: fluentd-etc
+              mountPath: /fluentd/etc-config
+            - name: config-volume
+              mountPath: /fluentd-config
+      containers:
+        - name: fluentd
+          image: fluent/fluentd-kubernetes-daemonset:v1.4.2-debian-elasticsearch-1.1
+          env:
+            - name: FLUENT_ELASTICSEARCH_HOST
+              value: "logstash-service.kube-logging.svc.cluster.local"
+            - name: FLUENT_ELASTICSEARCH_PORT
+              value: "5044"
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          volumeMounts:
+            - name: varlog
+              mountPath: /var/log
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+            - name: fluentd-etc
+              mountPath: /fluentd/etc
+            - name: buffer-volume
+              mountPath: /var/log/fluentd-buffers
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+            type: Directory
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+            type: Directory
+        - name: config-volume
+          configMap:
+            name: fluentd-config
+        - name: fluentd-etc
+          emptyDir: {}
+        - name: buffer-volume
+          emptyDir: {}

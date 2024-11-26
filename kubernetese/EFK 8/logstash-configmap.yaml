@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: kube-logging
+data:
+  logstash.conf: |
+    input {
+      tcp {
+        port => 5044
+        codec => plain {
+          charset => "UTF-8"
+        }
+
+      }
+    }
+    output {
+      elasticsearch {
+        hosts => ["elasticsearch.kube-logging.svc.cluster.local:9200"]
+        index => "saeed-logs-%{+YYYY.MM.dd}"
+      }
+    }
