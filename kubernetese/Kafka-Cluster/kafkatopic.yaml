@@ -1,0 +1,12 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: flowinsight
+  namespace: default
+  labels:
+    strimzi.io/cluster: kafka
+spec:
+  partitions: 20
+  replicas: 2
+  config:
+    retention.ms: 604800000

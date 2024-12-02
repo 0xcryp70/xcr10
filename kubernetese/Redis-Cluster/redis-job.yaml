@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-app-init
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - name: redis-app-init
+          image: redis:7.4-alpine
+          command:
+            - /bin/sh
+            - -c
+            - |
+              #!/bin/sh
+              set -e
+
+              echo "Waiting for all Redis pods to be ready..."
+
+              NUM_PODS=3
+              READY_PODS=0
+
+              while [ $READY_PODS -lt $NUM_PODS ]; do
+                READY_PODS=$(getent hosts redis-app-0.redis-srv.default.svc.cluster.local \
+                                    redis-app-1.redis-srv.default.svc.cluster.local \
+                                    redis-app-2.redis-srv.default.svc.cluster.local | wc -l)
+                echo "$READY_PODS/$NUM_PODS pods are ready."
+                if [ $READY_PODS -lt $NUM_PODS ]; then
+                  sleep 5
+                fi
+              done
+
+              echo "All Redis pods are ready. Initializing cluster..."
+
+              yes yes | redis-cli --cluster create \
+                redis-app-0.redis-srv.default.svc.cluster.local:6379 \
+                redis-app-1.redis-srv.default.svc.cluster.local:6379 \
+                redis-app-2.redis-srv.default.svc.cluster.local:6379 \
+                # --cluster-replicas 2
+
+              echo "Cluster initialization completed."
+      restartPolicy: OnFailure

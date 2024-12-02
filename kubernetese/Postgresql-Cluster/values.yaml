@@ -1,0 +1,35 @@
+replicaCount: 3
+
+pgpool:
+  enabled: true
+  customUsers:
+    usernames: "username"
+    passwords: "password"
+  srCheckDatabase: "sampledb"
+
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+postgresql:
+  username: username
+  password: "password"
+  database: "sampledb"
+  postgresPassword: "password"
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 500m
+  limits:
+    memory: 1024Mi
+    cpu: 1000m
+
+service:
+  type: ClusterIP
+
+metrics:
+  enabled: true

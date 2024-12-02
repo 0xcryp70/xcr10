@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: default
+spec:
+  schedule: "0 2 * * *" # Run daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: postgres-backup
+              image: bitnami/postgresql:16.5
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGPASSWORD
+                  value: "flowinsight"
+              command:
+                - /bin/bash
+                - "-c"
+                - |
+                  /bin/bash /scripts/backup.sh
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts/backup.sh
+                  subPath: backup.sh
+                - name: backup-storage
+                  mountPath: /backups
+          restartPolicy: OnFailure
+          volumes:
+            - name: scripts
+              configMap:
+                name: postgres-backup-script
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: postgres-backup-pvc

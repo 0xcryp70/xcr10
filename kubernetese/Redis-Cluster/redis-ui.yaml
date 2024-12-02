@@ -1,0 +1,15 @@
+# Service to expose Redis UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-ui-svc
+  namespace: default
+spec:
+  selector:
+    app: redis-app
+  ports:
+    - port: 8001
+      targetPort: ui
+      nodePort: 30083
+      name: ui
+  type: NodePort

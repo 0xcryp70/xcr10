@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: rabbitmq-app
+  namespace: default
 spec:
   serviceName: rabbitmq-srv
   replicas: 3
@@ -14,6 +15,18 @@ spec:
         app: rabbitmq-app
     spec:
       serviceAccountName: rabbitmq
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - rabbitmq-app
+                topologyKey: kubernetes.io/hostname
       initContainers:
         - name: config
           image: busybox
