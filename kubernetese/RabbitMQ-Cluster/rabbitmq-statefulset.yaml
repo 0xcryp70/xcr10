@@ -1,18 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: rabbitmq-app
-  namespace: default
+  name: rabbitmq
 spec:
-  serviceName: rabbitmq-srv
+  serviceName: rabbitmq
   replicas: 3
   selector:
     matchLabels:
-      app: rabbitmq-app
+      app: rabbitmq
   template:
     metadata:
       labels:
-        app: rabbitmq-app
+        app: rabbitmq
     spec:
       serviceAccountName: rabbitmq
       affinity:
@@ -25,7 +24,7 @@ spec:
                     - key: app
                       operator: In
                       values:
-                        - rabbitmq-app
+                        - rabbitmq
                 topologyKey: kubernetes.io/hostname
       initContainers:
         - name: config
@@ -65,7 +64,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: RABBITMQ_NODENAME
-              value: rabbit@$(RABBIT_POD_NAME).rabbitmq-srv.$(RABBIT_POD_NAMESPACE).svc.cluster.local
+              value: rabbit@$(RABBIT_POD_NAME).rabbitmq.$(RABBIT_POD_NAMESPACE).svc.cluster.local
             - name: RABBITMQ_USE_LONGNAME
               value: "true"
             - name: RABBITMQ_CONFIG_FILE
@@ -76,7 +75,7 @@ spec:
                   name: rabbit-secret
                   key: RABBITMQ_ERLANG_COOKIE
             - name: K8S_HOSTNAME_SUFFIX
-              value: .rabbitmq-srv.$(RABBIT_POD_NAMESPACE).svc.cluster.local
+              value: .rabbitmq.$(RABBIT_POD_NAMESPACE).svc.cluster.local
           volumeMounts:
             - name: data
               mountPath: /var/lib/rabbitmq
