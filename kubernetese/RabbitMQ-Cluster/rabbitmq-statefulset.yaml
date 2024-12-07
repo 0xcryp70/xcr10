@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   serviceName: rabbitmq-srv
-  replicas: 3
+  replicas: 4
   selector:
     matchLabels:
       app: rabbitmq-app
