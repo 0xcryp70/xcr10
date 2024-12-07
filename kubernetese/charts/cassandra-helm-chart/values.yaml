@@ -1,0 +1,63 @@
+# Global configuration
+namespace: default
+app:
+  name: cassandra-app
+  labels:
+    app: cassandra-app
+    version: "1.0"
+
+# Cassandra StatefulSet configuration
+statefulset:
+  replicas: 3
+  serviceName: cassandra-svc
+  terminationGracePeriod: 120
+
+# Cassandra container configuration
+cassandra:
+  image: cassandra:4.1.7
+  clusterName: K8sCluster
+  seeds: |
+    cassandra-app-0.cassandra-svc.default.svc.cluster.local,cassandra-app-1.cassandra-svc.default.svc.cluster.local,cassandra-app-2.cassandra-svc.default.svc.cluster.local
+  dc: DC1
+  rack: Rack1
+  maxHeapSize: "512M"
+  heapNewSize: "100M"
+  readTimeout: "5000"
+  writeTimeout: "5000"
+  requestTimeout: "5000"
+  timezone: "Asia/Tehran"
+
+# Liveness probe configuration
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+# Persistence configuration
+persistence:
+  enabled: true
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+
+# ConfigMap data
+config:
+  schemaSQL: |
+    CREATE KEYSPACE IF NOT EXISTS flowinsight WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+
+  schemaScript: |
+    #!/usr/bin/env python3
+    import sys
+    import os
+    import subprocess
+    import time
+
+    addrs = os.getenv("CASSANDRA_ADDR").split("|")
+
+# Job configuration
+job:
+  image: hub-private.parspooyesh.net/staging-cassandra-setup
+  cassandraAddr: cassandra-app-0.cassandra-svc.default.svc.cluster.local:9042
+  keyspace: flowinsight

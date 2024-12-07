@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cassandra-setup-job
+  namespace: { { .Values.namespace } }
+  labels:
+    app: { { .Values.app.labels.app } }
+    version: { { .Values.app.labels.version } }
+spec:
+  template:
+    spec:
+      containers:
+        - name: cassandra-setup-job
+          image: { { .Values.job.image } }
+          command: ["python3", "/app/cassandra-schema-create.py"]
+          env:
+            - name: CASSANDRA_ADDR
+              value: { { .Values.job.cassandraAddr } }
+            - name: CASSANDRA_KEYSPACE
+              value: { { .Values.job.keyspace } }
+      restartPolicy: OnFailure

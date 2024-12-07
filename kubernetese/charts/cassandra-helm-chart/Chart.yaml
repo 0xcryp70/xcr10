@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cassandra-helm-chart
+description: A Helm 3 chart for deploying Cassandra StatefulSet
+version: 0.1.0
+appVersion: "4.1.7"
