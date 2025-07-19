@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: { { .Values.app.name } }
-  namespace: { { .Values.namespace } }
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.namespace }}
   labels:
-    app: { { .Values.app.labels.app } }
-    version: { { .Values.app.labels.version } }
+    app: {{ .Values.app.labels.app }}
+    version: {{ .Values.app.labels.version }}
 spec:
-  serviceName: { { .Values.statefulset.serviceName } }
-  replicas: { { .Values.statefulset.replicas } }
+  serviceName: {{ .Values.statefulset.serviceName }}
+  replicas: {{ .Values.statefulset.replicas }}
   selector:
     matchLabels:
-      app: { { .Values.app.labels.app } }
+      app: {{ .Values.app.labels.app }}
   template:
     metadata:
       labels:
-        app: { { .Values.app.labels.app } }
-        version: { { .Values.app.labels.version } }
+        app: {{ .Values.app.labels.app }}
+        version: {{ .Values.app.labels.version }}
     spec:
       terminationGracePeriodSeconds:
-        { { .Values.statefulset.terminationGracePeriod } }
+        {{ .Values.statefulset.terminationGracePeriod }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -30,11 +30,11 @@ spec:
                     - key: app
                       operator: In
                       values:
-                        - { { .Values.app.labels.app } }
+                        - {{ .Values.app.labels.app }}
                 topologyKey: kubernetes.io/hostname
       containers:
         - name: cassandra-container
-          image: { { .Values.cassandra.image } }
+          image: {{ .Values.cassandra.image }}
           ports:
             - containerPort: 9042
               name: cql
@@ -46,19 +46,19 @@ spec:
               name: jmx
           env:
             - name: CASSANDRA_CLUSTER_NAME
-              value: { { .Values.cassandra.clusterName } }
+              value: {{ .Values.cassandra.clusterName }}
             - name: CASSANDRA_SEEDS
-              value: { { .Values.cassandra.seeds } }
+              value: {{ .Values.cassandra.seeds }}
             - name: CASSANDRA_DC
-              value: { { .Values.cassandra.dc } }
+              value: {{ .Values.cassandra.dc }}
             - name: CASSANDRA_RACK
-              value: { { .Values.cassandra.rack } }
+              value: {{ .Values.cassandra.rack }}
             - name: MAX_HEAP_SIZE
-              value: { { .Values.cassandra.maxHeapSize } }
+              value: {{ .Values.cassandra.maxHeapSize }}
             - name: HEAP_NEWSIZE
-              value: { { .Values.cassandra.heapNewSize } }
+              value: {{ .Values.cassandra.heapNewSize }}
             - name: TZ
-              value: { { .Values.cassandra.timezone } }
+              value: {{ .Values.cassandra.timezone }}
           livenessProbe:
             exec:
               command:
@@ -66,11 +66,11 @@ spec:
                 - -c
                 - "nodetool status"
             initialDelaySeconds:
-              { { .Values.livenessProbe.initialDelaySeconds } }
-            periodSeconds: { { .Values.livenessProbe.periodSeconds } }
-            timeoutSeconds: { { .Values.livenessProbe.timeoutSeconds } }
-            failureThreshold: { { .Values.livenessProbe.failureThreshold } }
-            successThreshold: { { .Values.livenessProbe.successThreshold } }
+              {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
           volumeMounts:
             - name: cassandra-data
               mountPath: /var/lib/cassandra
@@ -78,7 +78,7 @@ spec:
     - metadata:
         name: cassandra-data
       spec:
-        accessModes: { { .Values.persistence.accessModes } }
+        accessModes: {{ .Values.persistence.accessModes }}
         resources:
           requests:
-            storage: { { .Values.persistence.size } }
+            storage: {{ .Values.persistence.size }}
